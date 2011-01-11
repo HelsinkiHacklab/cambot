@@ -1,0 +1,13 @@
+The high-level control (and video streaming) is handled by 3 services on a laptop
+
+  * streamserver
+    This will handle the camera streams, overlays etc
+  * controlserver
+    This will talk with the Arduino
+  * tcpserver
+    This will handle incoming TCP control protocol connections
+    and talk with controlserver and streamserver accordingly
+
+All of these will use DBUS for IPC.
+
+There will also be a few client programs that talk with the tcpserver but more about them later
