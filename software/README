@@ -10,4 +10,6 @@ The high-level control (and video streaming) is handled by 3 services on a lapto
 
 All of these will use DBUS for IPC.
 
-There will also be a few client programs that talk with the tcpserver but more about them later
+There will also be a few client programs that talk with the tcpserver but more about them later.
+
+Software will be written in Python first, if there are performance bottlenecks (streamserver overlays are just about the only place I can think of) then those parts will be rewritten in Vala.
