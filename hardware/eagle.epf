@@ -1,5 +1,5 @@
 [Eagle]
-Version="05 06 00"
+Version="05 11 00"
 Platform="Mac OS X"
 Serial="62191E841E-LSR-WLM-1EL"
 Globals="Globals"
@@ -143,7 +143,6 @@ UsedLibrary="/Applications/EAGLE/lbr/frames.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/freescale.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/ftdichip.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/fuse.lbr"
-UsedLibrary="/Applications/EAGLE/lbr/ground-junctions.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/heatsink.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/holes.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/holtek.lbr"
@@ -257,11 +256,9 @@ UsedLibrary="/Applications/EAGLE/lbr/smd-special.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/solomon-systech.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/solpad.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/special-drill.lbr"
-UsedLibrary="/Applications/EAGLE/lbr/special-pad.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/special.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/st-microelectronics.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/supertex.lbr"
-UsedLibrary="/Applications/EAGLE/lbr/supply-dummy.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/supply1.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/supply2.lbr"
 UsedLibrary="/Applications/EAGLE/lbr/switch-alps.lbr"
@@ -304,7 +301,7 @@ UsedLibrary="/Applications/EAGLE/lbr/3.part/SparkFun.lbr"
 
 [Win_1]
 Type="Control Panel"
-Loc="981 121 1580 520"
+Loc="660 398 1259 797"
 State=2
 Number=0
 
