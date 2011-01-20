@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#adapted from http://pygstdocs.berlios.de/pygst-tutorial/capabilities.html
+#adapted from https://code.fluendo.com/flumotion/trac/browser/flumotion/trunk/flumotion/component/converters/overlay/overlay.py and http://pygstdocs.berlios.de/pygst-tutorial/capabilities.html
 
 import sys, os
 import pygtk, gtk, gobject
