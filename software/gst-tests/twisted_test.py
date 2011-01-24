@@ -34,5 +34,5 @@ class camfactory(protocol.ServerFactory, dbus.service.Object):
         pass
 
 
-reactor.listenTCP(6969, camfactory(dbus.SessionBus()))
+reactor.listenTCP(6969, camfactory(dbus.SystemBus()))
 reactor.run()

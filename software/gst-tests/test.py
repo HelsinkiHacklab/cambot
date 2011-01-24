@@ -27,8 +27,8 @@ class GTK_Main():
         self.overlay_buffer = None
         self.overlay_text = "Foo Bar Baz 123"
         
-        #self.bus = dbus.SystemBus()
-        self.bus = dbus.SessionBus()
+        self.bus = dbus.SystemBus()
+        #self.bus = dbus.SessionBus()
         #textsignal = self.bus.add_signal_receiver(self.overlay_text_changed, 'textchanged', 'com.example')
         textsignal = self.bus.add_signal_receiver(self.overlay_text_changed, dbus_interface = "com.example.TestService", signal_name = "HelloSignal")
     
