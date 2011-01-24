@@ -12,8 +12,14 @@ dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 
 class camprotocol(basic.LineReceiver):
+    def connectionMade(self):
+        self.factory.bus.add_signal_receiver(self.dbus_signal_received, dbus_interface = "com.example.TestService")
+
+    def dbus_signal_received(self, *args, **kwargs):
+         self.transport.write("Got signal, args: %s\n   kwargs: %s\n" % (repr(args), repr(kwargs)))
+
     def lineReceived(self, data):
-        print "got data: %s" % data
+        #print "got data: %s" % data
         self.transport.write(data.upper() + "\n")
         self.factory.HelloSignal(data)
         if (data == "BYE"):
