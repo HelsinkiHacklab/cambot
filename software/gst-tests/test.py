@@ -14,14 +14,23 @@ from cairo import Context
 import pango
 import pangocairo
 
+import dbus
+from dbus.mainloop.glib import DBusGMainLoop
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-class GTK_Main:
+class GTK_Main():
     CAPS_TEMPLATE = "video/x-raw-rgb,bpp=32,depth=32,width=%d,height=%d," \
             "red_mask=-16777216,green_mask=16711680,blue_mask=65280," \
             "alpha_mask=255,endianness=4321,framerate=0/1"    
 
     def __init__(self):
         self.overlay_buffer = None
+        self.overlay_text = "Foo Bar Baz 123"
+        
+        #self.bus = dbus.SystemBus()
+        self.bus = dbus.SessionBus()
+        #textsignal = self.bus.add_signal_receiver(self.overlay_text_changed, 'textchanged', 'com.example')
+        textsignal = self.bus.add_signal_receiver(self.overlay_text_changed, dbus_interface = "com.example.TestService", signal_name = "HelloSignal")
     
     
         window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -72,6 +81,12 @@ class GTK_Main:
         bus.connect("sync-message::element", self.on_sync_message)
 
         self.start_stop(None)
+
+    def overlay_text_changed(self, new_text, *args, **kwargs):
+        print "Got args: %s" % repr(args)
+        print "Got kwargs: %s" % repr(kwargs)
+        self.overlay_text = new_text
+        self.renegerate_overlay_buffer()
 
     def resolution_changed(self):
         self.renegerate_overlay_buffer()
@@ -127,10 +142,10 @@ class GTK_Main:
             self.sourceBin.set_state(gst.STATE_PLAYING)
 
     def push_buffer(self, source, arg0):
-        print "push_buffer called"
+        #print "push_buffer called"
         if self.overlay_buffer == None:
             self.renegerate_overlay_buffer()
-        print "overlay_buffer size: %d" % len(self.overlay_buffer)
+        #print "overlay_buffer size: %d" % len(self.overlay_buffer)
         gstBuf = gst.Buffer(self.overlay_buffer)
         padcaps = gst.caps_from_string(self.capsStr)
         gstBuf.set_caps(padcaps)
@@ -141,7 +156,7 @@ class GTK_Main:
     def renegerate_overlay_buffer(self):
         image = ImageSurface(cairo.FORMAT_ARGB32, self.video_width, self.video_height)
         context = Context(image)
-        text = "Foo bar 123"
+        text = self.overlay_text
         font = pango.FontDescription('sans normal 22')
         text_offset = [6, 6]
 
@@ -197,6 +212,10 @@ class GTK_Main:
             gtk.gdk.threads_enter()
             imagesink.set_xwindow_id(self.movie_window.window.xid)
             gtk.gdk.threads_leave()
+
+
+
+
             
 GTK_Main()
 gtk.gdk.threads_init()
