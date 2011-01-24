@@ -60,10 +60,11 @@ class GTK_Main():
         self.player = gst.parse_launch('videotestsrc name=source ! tee name=splitter')
         self.bin1 = gst.gst_parse_bin_from_description('queue ! video/x-raw-yuv,format=(fourcc)AYUV,width=500,height=400 ! videomixer name=mix ! ffmpegcolorspace !  autovideosink name=videosink', True)
         self.player.add(self.bin1)
-        #self.bin2 = gst.gst_parse_bin_from_description('queue ! video/x-raw-yuv,format=(fourcc)AYUV,width=500,height=400 ! videomixer name=mix ! ffmpegcolorspace !  tcpserversink name=videosink', True)
-        #self.player.add(self.bin2)
+        self.bin2 = gst.gst_parse_bin_from_description('queue ! video/x-raw-yuv,format=(fourcc)AYUV,width=500,height=400 ! videomixer name=mix ! ffmpegcolorspace !  tcpserversink name=videosink protocol=none port=3000', True)
+        self.player.add(self.bin2)
         self.tee = self.player.get_by_name("splitter")
         self.tee.link(self.bin1)
+        self.tee.link(self.bin2)
 
         # adapted from https://code.fluendo.com/flumotion/trac/browser/flumotion/trunk/flumotion/component/converters/overlay/overlay.py
         self.videomixer = self.bin1.get_by_name("mix")
