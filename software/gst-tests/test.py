@@ -50,6 +50,8 @@ class GTK_Main():
         vbox.add(self.movie_window)
         window.show_all()       
 
+        # gst-launch v4l2src ! video/x-raw-yuv,format=\(fourcc\)YUY2,width=640,height=480 ! ffmpegcolorspace ! autovideosink
+
 
         #self.player = gst.parse_launch('videotestsrc name=source ! video/x-raw-yuv,format=(fourcc)AYUV ! videomixer name=mix ! ffmpegcolorspace ! autovideosink name=videosink')
         # PONDER: How to get the resolution from the videosink ?
