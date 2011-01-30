@@ -62,6 +62,7 @@ VRTCPSRC="udpsrc port=5005 name=vrtpsrc"
 AELEM="audiotestsrc is-live=1"
 ASOURCE="$AELEM ! queue ! audioresample ! audioconvert"
 AENC="alawenc ! rtppcmapay"
+#AENC="vorbisenc ! rtpvorbispay"
 
 ARTPSINK="udpsink port=5002 host=$DEST ts-offset=$AOFFSET name=artpsink"
 ARTCPSINK="udpsink port=5003 host=$DEST sync=false async=false name=artcpsink"

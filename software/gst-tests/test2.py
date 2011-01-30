@@ -7,11 +7,15 @@ import gst
 
 class GTK_Main():
     def __init__(self):
-        #self.vencoder_str = "x264enc tune=zerolatency byte-stream=true ! rtph264pay"
+        self.vencoder_str = "ffmpegcolorspace ! x264enc tune=zerolatency byte-stream=true ! rtph264pay"
+        # increasing the bitrate doesn't seem to improve quality...
+        self.vencoder_str = "ffmpegcolorspace ! x264enc tune=zerolatency byte-stream=true bitrate=8000 ! rtph264pay"
         #self.vencoder_str = "ffenc_h263 ! rtph263ppay"
-        self.vencoder_str = "x264enc tune=zerolatency byte-stream=true bitrate=800 ! rtph264pay"
+        #self.vencoder_str = "videoscale ! videorate ! video/x-raw-yuv,width=352,height=288,framerate=15/1 !  ffmpegcolorspace ! x264enc tune=zerolatency byte-stream=true bitrate=1500 ! rtph264pay"
+        #self.vencoder_str = "videoscale ! videorate !  ffmpegcolorspace ! x264enc tune=zerolatency byte-stream=true  ! rtph264pay"
+        #self.vencoder_str = "ffmpegcolorspace ! videoscale ! videorate !  video/x-raw-yuv,width=380,height=240 ! x264enc tune=zerolatency byte-stream=true bitrate=1500 ! rtph264pay"
         self.player = gst.parse_launch("gstrtpbin name=rtpbin \
-        v4l2src ! tee name=splitter ! ffmpegcolorspace ! " + self.vencoder_str + " ! rtpbin.send_rtp_sink_0 \
+        v4l2src ! tee name=splitter ! " + self.vencoder_str + " ! rtpbin.send_rtp_sink_0 \
                   rtpbin.send_rtp_src_0 ! udpsink port=5000 host=127.0.0.1                           \
                   rtpbin.send_rtcp_src_0 ! udpsink port=5001 host=127.0.0.1 sync=false async=false    \
                   udpsrc port=5005 ! rtpbin.recv_rtcp_sink_0                           \

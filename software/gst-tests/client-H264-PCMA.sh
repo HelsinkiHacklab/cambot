@@ -49,6 +49,7 @@ AUDIO_CAPS="application/x-rtp,media=(string)audio,clock-rate=(int)8000,encoding-
 
 VIDEO_DEC="rtph264depay ! ffdec_h264"
 AUDIO_DEC="rtppcmadepay ! alawdec"
+#AUDIO_DEC="rtpvorbisdepay ! vorbisdec"
 
 VIDEO_SINK="ffmpegcolorspace ! autovideosink"
 AUDIO_SINK="audioconvert ! audioresample ! autoaudiosink"
