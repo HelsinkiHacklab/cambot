@@ -5,6 +5,8 @@ if os.path.isdir(local_module_dir):
     sys.path.append(local_module_dir)
 import utils, hmac, hashlib
 
+# client example from http://www.oluyede.org/blog/2008/08/31/twisted-interactive-console/
+
 from twisted.internet import defer, stdio, protocol, reactor
 from twisted.protocols import basic
 
