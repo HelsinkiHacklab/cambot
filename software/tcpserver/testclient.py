@@ -55,8 +55,8 @@ class Client(basic.LineReceiver):
         if data[0:6] == "HELLO\t":
             self.session_key = utils.hex_decode(data.split("\t")[1])
         message = self.verify_data(data)
-        print "Client: Got message %s\n" % message
-        print "Client: self.session_key=%s" % utils.hex_encode(self.session_key)
+        #print "Client: Got message %s\n" % message
+        #print "Client: self.session_key=%s" % utils.hex_encode(self.session_key)
         if message == False:
             self.factory.deferred.callback("ERROR Hash mismatch")
             return

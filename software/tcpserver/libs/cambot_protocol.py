@@ -1,23 +1,30 @@
-import utils, hmac, hashlib
+import utils, hmac, hashlib, time
 
 
 from twisted.internet import protocol
 from twisted.protocols import basic
+from twisted.internet import reactor
 
 import dbus.service
 
 
 class camprotocol(basic.LineReceiver):
     delimiter = "\n"
+    last_activity = 0.0
+    keepalive_timeout = 5
 
     def connectionMade(self):
         self.factory.bus.add_signal_receiver(self.dbus_signal_received, dbus_interface = "com.example.TestService")
         self.session_key = utils.create_session_key()
         self.send_signed("HELLO\t%s" % (utils.hex_encode(self.session_key)))
+        reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
 
     def send_signed(self, message):
         h = hmac.new(self.session_key, message, hashlib.sha1)
-        self.transport.write(message + "\t" + h.hexdigest() + "\n")
+        raw = message + "\t" + h.hexdigest() + "\n"
+        print "Sending: %s" % raw
+        self.transport.write(raw)
+        self.last_activity = time.time()
 
     def dbus_signal_received(self, *args, **kwargs):
          self.transport.write("Got signal, args: %s\n   kwargs: %s\n" % (repr(args), repr(kwargs)))
@@ -30,6 +37,14 @@ class camprotocol(basic.LineReceiver):
             return False
         return message
 
+    def keepalive_callback(self):
+        # Immediately register another callback for a later time
+        reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
+        if (time.time() - self.last_activity < self.keepalive_timeout):
+            # We're good
+            return
+        self.send_signed("KEEPALIVE %s" % time.strftime('%Y-%m-%d %H:%M:%S'))
+
     def lineReceived(self, data):
         print "got data: %s" % data
         message = self.verify_data(data)
@@ -41,6 +56,7 @@ class camprotocol(basic.LineReceiver):
         #Echo service for debugging
         self.send_signed(message.upper())
 
+        self.last_activity = time.time()
         self.parse_message(message)
 
     def parse_message(self, message):

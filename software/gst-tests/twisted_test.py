@@ -3,12 +3,12 @@ glib2reactor.install()
 
 from twisted.internet import protocol, reactor
 from twisted.protocols import basic
-
-
 import dbus
-import dbus.service
 import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+
+import dbus.service
 
 
 class camprotocol(basic.LineReceiver):
@@ -28,9 +28,10 @@ class camprotocol(basic.LineReceiver):
 class camfactory(protocol.ServerFactory, dbus.service.Object):
     protocol = camprotocol
     
-    def __init__(self, bus,  object_path='/com/example/TestService/object'):
+    def __init__(self, config, bus,  object_path='/com/example/TestService/object'):
         dbus.service.Object.__init__(self, bus, object_path)
         self.bus = bus
+        self.config = config
 
 
     @dbus.service.signal('com.example.TestService')
