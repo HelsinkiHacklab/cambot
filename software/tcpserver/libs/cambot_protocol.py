@@ -11,16 +11,21 @@ import dbus.service
 class camprotocol(basic.LineReceiver):
     delimiter = "\n"
     last_activity = 0.0
-    keepalive_timeout = 5
+    keepalive_timeout = 15
 
     def connectionMade(self):
         self.factory.bus.add_signal_receiver(self.dbus_signal_received, dbus_interface = "com.example.TestService")
         self.session_key = utils.create_session_key()
+        self.hmac_key = self.session_key + self.factory.config.get('auth', 'shared_secret')
         self.send_signed("HELLO\t%s" % (utils.hex_encode(self.session_key)))
-        reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
+        self.keepalive_timer = reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
+
+    def connectionLost(self, reason):
+        print "connectionLost trig, reason=%s" % repr(reason)
+        self.keepalive_timer.cancel()
 
     def send_signed(self, message):
-        h = hmac.new(self.session_key, message, hashlib.sha1)
+        h = hmac.new(self.hmac_key, message, hashlib.sha1)
         raw = message + "\t" + h.hexdigest() + "\n"
         print "Sending: %s" % raw
         self.transport.write(raw)
@@ -31,15 +36,15 @@ class camprotocol(basic.LineReceiver):
 
     def verify_data(self, data):
         sent_hash = utils.hex_decode(data[-40:])
-        message = data[:-40]
-        h = hmac.new(self.session_key, message, hashlib.sha1)
+        message = data[:-41]
+        h = hmac.new(self.hmac_key, message, hashlib.sha1)
         if sent_hash != h.digest():
             return False
         return message
 
     def keepalive_callback(self):
         # Immediately register another callback for a later time
-        reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
+        self.keepalive_timer = reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
         if (time.time() - self.last_activity < self.keepalive_timeout):
             # We're good
             return
