@@ -1,4 +1,5 @@
-import utils, hmac, hashlib, time
+import utils
+from datetime import datetime, timedelta
 
 
 from twisted.internet import protocol
@@ -10,45 +11,41 @@ import dbus.service
 
 class camprotocol(basic.LineReceiver):
     delimiter = "\n"
-    last_activity = 0.0
-    keepalive_timeout = 15
+    last_activity = utils.utcstamp()
+    keepalive_timeout = timedelta(seconds=15)
+    keepalive_timer = None
 
     def connectionMade(self):
         self.factory.bus.add_signal_receiver(self.dbus_signal_received, dbus_interface = "com.example.TestService")
         self.session_key = utils.create_session_key()
-        self.hmac_key = self.session_key + self.factory.config.get('auth', 'shared_secret')
+        self.hmac_wrapper = utils.hmac_wrapper(self.session_key + self.factory.config.get('auth', 'shared_secret'))
         self.send_signed("HELLO\t%s" % (utils.hex_encode(self.session_key)))
-        self.keepalive_timer = reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
+        self.keepalive_timer = reactor.callLater(self.keepalive_timeout.seconds, self.keepalive_callback)
 
     def connectionLost(self, reason):
         print "connectionLost trig, reason=%s" % repr(reason)
-        self.keepalive_timer.cancel()
+        if self.keepalive_timer:
+            self.keepalive_timer.cancel()
 
     def send_signed(self, message):
-        h = hmac.new(self.hmac_key, message, hashlib.sha1)
-        raw = message + "\t" + h.hexdigest() + "\n"
+        raw = self.hmac_wrapper.sign(message) + "\n";
         print "Sending: %s" % raw
         self.transport.write(raw)
-        self.last_activity = time.time()
+        self.last_activity = utils.utcstamp()
 
     def dbus_signal_received(self, *args, **kwargs):
          self.transport.write("Got signal, args: %s\n   kwargs: %s\n" % (repr(args), repr(kwargs)))
 
     def verify_data(self, data):
-        sent_hash = utils.hex_decode(data[-40:])
-        message = data[:-41]
-        h = hmac.new(self.hmac_key, message, hashlib.sha1)
-        if sent_hash != h.digest():
-            return False
-        return message
+        return self.hmac_wrapper.verify_data(data)
 
     def keepalive_callback(self):
         # Immediately register another callback for a later time
-        self.keepalive_timer = reactor.callLater(self.keepalive_timeout, self.keepalive_callback)
-        if (time.time() - self.last_activity < self.keepalive_timeout):
+        self.keepalive_timer = reactor.callLater(self.keepalive_timeout.seconds, self.keepalive_callback)
+        if (utils.utcstamp() - self.last_activity < self.keepalive_timeout):
             # We're good
             return
-        self.send_signed("KEEPALIVE %s" % time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.send_signed("KEEPALIVE\t%s" % utils.utcstamp().strftime('%Y-%m-%d %H:%M:%S.%f'))
 
     def lineReceived(self, data):
         print "got data: %s" % data
@@ -57,18 +54,25 @@ class camprotocol(basic.LineReceiver):
             self.send_signed("ERROR\tHash mismatch")
             self.transport.loseConnection()
             return
-        
-        #Echo service for debugging
-        self.send_signed(message.upper())
 
-        self.last_activity = time.time()
+        self.last_activity = utils.utcstamp()
         self.parse_message(message)
 
     def parse_message(self, message):
-        if message == "BYE":
-            self.send_signed("Good bye")
-            self.transport.loseConnection()
-            return
+        command, tab, cmd_args = message.partition("\t")
+        func = getattr(self, command, None)
+        if callable(func):
+            return func(cmd_args)
+        else:
+            self.send_signed("NACK")
+
+    def BYE(self, *args):
+        self.transport.loseConnection()
+        return
+
+    def PING(self, *args):
+        self.send_signed("PONG\t%s" % utils.utcstamp().strftime('%Y-%m-%d %H:%M:%S.%f'))
+        return
 
 class camfactory(protocol.ServerFactory, dbus.service.Object):
     protocol = camprotocol
