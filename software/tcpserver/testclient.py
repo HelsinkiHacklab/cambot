@@ -11,6 +11,8 @@ import utils
 
 
 class testclient:
+    pinged = None
+
     def __init__(self, address_tuple, config):
         self.config = config
         print self.config.get('auth', 'shared_secret')
@@ -58,7 +60,7 @@ class testclient:
         # Calculate delta to server time
         if self.latency:
             parsed_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S.%f')
-            self.server_timedelta = utils.utcstamp() - parsed_time
+            self.server_timedelta = utils.utcstamp() - parsed_time - self.latency
 
     def HELLO(self, *args):
         # Automagically ping after HELLO
@@ -66,6 +68,9 @@ class testclient:
         return
 
     def KEEPALIVE(self, *args):
+        return
+
+    def NACK(self, *args):
         return
 
     def verify_data(self, data):

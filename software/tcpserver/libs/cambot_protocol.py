@@ -14,6 +14,7 @@ class camprotocol(basic.LineReceiver):
     last_activity = utils.utcstamp()
     keepalive_timeout = timedelta(seconds=15)
     keepalive_timer = None
+    client_timedelta = None
 
     def connectionMade(self):
         self.factory.bus.add_signal_receiver(self.dbus_signal_received, dbus_interface = "com.example.TestService")
@@ -70,8 +71,12 @@ class camprotocol(basic.LineReceiver):
         self.transport.loseConnection()
         return
 
-    def PING(self, *args):
+    def PING(self, timestamp_str):
         self.send_signed("PONG\t%s" % utils.utcstamp().strftime('%Y-%m-%d %H:%M:%S.%f'))
+        if timestamp_str:
+            # We cannot adjust for latency since we don't ping the client
+            parsed_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S.%f')
+            self.client_timedelta = utils.utcstamp() - parsed_time
         return
 
 class camfactory(protocol.ServerFactory, dbus.service.Object):
